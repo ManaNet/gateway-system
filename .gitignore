@@ -1,0 +1,5 @@
+
+.env
+vendor
+*.rar
+*.html

@@ -1,0 +1,20 @@
+{
+    "name": "mihou/bmc-hook-mana",
+    "description": "The official BMC (BuyMeACoffee) Webhook for Mana Discord Bot",
+    "type": "project",
+    "require": {
+        "catfan/medoo": "^1.7",
+        "pecee/simple-router": "4.3.2.1",
+        "vlucas/phpdotenv": "^5.3",
+        "swiftmailer/swiftmailer": "^6.2",
+        "guzzlehttp/guzzle": "^7.3"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mihou",
+            "email": "kokocrunchsh@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable"
+}
