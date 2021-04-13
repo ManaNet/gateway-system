@@ -16,7 +16,7 @@ error_reporting(E_ALL);
 
 define('DISCORD_TOKEN', 'https://discord.com/api/oauth2/token');
 define('DISCORD_USER', 'https://discordapp.com/api/users/@me');
-define('TEXT_REPLY', array(9923 => 'Authorization code from Discord is expired... please try again by pressing the link on your email once more.', 8823 => 'Invalid Request...', 2231 => 'The license seems to have already been used/is invalid...'));
+define('TEXT_REPLY', array(9923 => 'Authorization code from Discord is expired... please try again by pressing the link on your email once more.', 8823 => 'Invalid Request, possible malformed URL or invalid parameters.', 2231 => 'The license seems to have already been used/is invalid...'));
 
 # Load all the dotenv files.
 $dotenv = Dotenv::createImmutable(__DIR__);
@@ -164,7 +164,7 @@ SimpleRouter::post('/license/{license}/activate/', function ($license){
 
 SimpleRouter::get('/invalid/{code}', function ($code) {
     # Get the text response.
-    $reply__text = in_array($code, TEXT_REPLY) ? TEXT_REPLY[intval($code)] : 'Invalid Request...';
+    $reply__text = array_key_exists(intval($code), TEXT_REPLY) ? TEXT_REPLY[intval($code)] : 'Invalid Request...';
 
     echo '<!DOCTYPE html>
     <html lang="en">
@@ -201,7 +201,7 @@ SimpleRouter::post('/subscription/' . $_ENV['GATEWAY_ENDPOINT'], function () {
             getDatabase()->insert('licenses', ['id' => NULL, 'license' => $license]);
 
             # Send an email containing all the details from the license to the instant activation link.
-            email($bmc['supporter_email'], isset($bmc['supporter_name']) ? $bmc['supporter_name'] : "Fellow user", 'Place your email HTML here...', '[Mana] Thank you for purchasing Premium!');
+            email($bmc['supporter_email'], isset($bmc['supporter_name']) ? $bmc['supporter_name'] : "Fellow user", '<b>Mana Network</b><br>Thank you for purchasing Mana Premium! With each dollar you purchase, we are able to fund Mana\'s server and entire intrafrastucture while also being able to support ourselves enough, in exchange for supporting us, you receive the following rewards: <br><ul><li>3x server license keys (36 license keys for yearly subscriptions or 30 dollars support)</li><li>Waifu command unlocked</li><li>6% interest on bank command</li><li><b>SERVER SPECIAL</b> Ability to change Yuriverse to Quarterly images</li><li>And more</li></ul>To activate the license key, simply use the command: pa.redeem [license] onto a server with Mana or PM Mana with the following.<br><br>Your license key is: '.$license.'<br>You are free to gift this but do remember this is one-time use.<br><br>In case you want to activate it immediately for your account, simply press this link: <a href="https://discord.com/api/oauth2/authorize?client_id=741288788164345856&redirect_uri=https%3A%2F%2Fgateway.manabot.fun%2Fredeem%2F&response_type=code&scope=identify&state='.base64_encode($license).'">Authenticate with Discord</a><br><h5>Powered by Mana Network, created by Shindou Mihou.</h5>', '[Mana] Thank you for purchasing Premium!');
         } else {
             reply(400, 'Invalid request...');
         }
