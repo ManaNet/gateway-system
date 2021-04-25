@@ -41,6 +41,33 @@ SimpleRouter::get('/', function () {
     reply(200, 'The gateway of Mana, the ultimate Yuri (Girl\'s Love) bot, handles payment, license creation, validation and activation.');
 });
 
+SimpleRouter::get('/gift/{gift}', function ($license) {
+    $database = getDatabase();
+    if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Discordbot')) {
+        if ($database->count('licenses', ['license' => base64_decode($license)]) > 0) {
+            echo '<title>Mana Network - Gift</title>';
+            echo '<meta name="og:title" content="Mana Network - Gift">';
+            echo '<meta name="og:description" content="You have received a Mana Premium gift from someone! Enter the link to claim!">';
+            echo '<meta name="og:image" content="https://cdn.manabot.fun/images/test.png">';
+            echo '<meta name="description" content="You have received a Mana Premium gift from someone! Enter the link to claim!">';
+            echo '<meta name="image" content="https://cdn.manabot.fun/images/test.png">';
+        } else {
+            echo '<title>Mana Network - Gift</title>';
+            echo '<meta name="og:title" content="Mana Network - Gift">';
+            echo '<meta name="og:description" content="This gift is already claimed or expired!">';
+            echo '<meta name="og:image" content="https://cdn.manabot.fun/images/test.png">';
+            echo '<meta name="og:description" content="This gift is already claimed or expired!">';
+            echo '<meta name="image" content="https://cdn.manabot.fun/images/test.png">';
+        }
+    } else {
+        if ($database->count('licenses', ['license' => base64_decode($license)]) > 0) {
+            header('Location: https://discord.com/api/oauth2/authorize?client_id=741288788164345856&redirect_uri=https%3A%2F%2Fgateway.manabot.fun%2Fredeem%2F&response_type=code&scope=identify&state='.$license);
+        } else {
+            header('Location: https://gateway.manabot.fun/invalid/2231/');
+        }
+    }
+});
+
 function random_bool()
 {
     return (bool) random_int(0, 1);
@@ -134,10 +161,10 @@ SimpleRouter::get('/license/{license}/validate/', function ($license) {
     reply($valid ? 200 : 401, $valid ? 'The license is valid' : 'The license is invalid');
 });
 
-SimpleRouter::get('/license/{license}/activate/', function ($license){
-    if(isset($_GET['secret']) && $_GET['secret'] === $_ENV['SERVER_SECRET']){
+SimpleRouter::get('/license/{license}/activate/', function ($license) {
+    if (isset($_GET['secret']) && $_GET['secret'] === $_ENV['SERVER_SECRET']) {
         $database = getDatabase();
-        if($database->count('licenses', ['license' => $license]) > 0){
+        if ($database->count('licenses', ['license' => $license]) > 0) {
             $database->delete('licenses', ['license' => $license]);
             reply(200, 'The license was accepted...');
         } else {
@@ -148,10 +175,10 @@ SimpleRouter::get('/license/{license}/activate/', function ($license){
     }
 });
 
-SimpleRouter::post('/license/{license}/activate/', function ($license){
-    if(isset($_POST['secret']) && $_POST['secret'] === $_ENV['SERVER_SECRET']){
+SimpleRouter::post('/license/{license}/activate/', function ($license) {
+    if (isset($_POST['secret']) && $_POST['secret'] === $_ENV['SERVER_SECRET']) {
         $database = getDatabase();
-        if($database->count('licenses', ['license' => $license]) > 0){
+        if ($database->count('licenses', ['license' => $license]) > 0) {
             $database->delete('licenses', ['license' => $license]);
             reply(200, 'The license was accepted...');
         } else {
@@ -186,7 +213,8 @@ SimpleRouter::get('/invalid/{code}', function ($code) {
     </html>';
 });
 
-function calculateTimestamp($total__amount = 0){
+function calculateTimestamp($total__amount = 0)
+{
     return $total__amount > 3 && $total__amount < 18 ? 30 : ($total__amount >= 6 && $total__amount < 36 ? 180 : 360);
 }
 
@@ -201,7 +229,8 @@ SimpleRouter::post('/subscription/' . $_ENV['GATEWAY_ENDPOINT'], function () {
             getDatabase()->insert('licenses', ['id' => NULL, 'license' => $license]);
 
             # Send an email containing all the details from the license to the instant activation link.
-            email($bmc['supporter_email'], isset($bmc['supporter_name']) ? $bmc['supporter_name'] : "Fellow user", '<b>Mana Network</b><br>Thank you for purchasing Mana Premium! With each dollar you purchase, we are able to fund Mana\'s server and entire intrafrastucture while also being able to support ourselves enough, in exchange for supporting us, you receive the following rewards: <br><ul><li>3x server license keys (36 license keys for yearly subscriptions or 30 dollars support)</li><li>Waifu command unlocked</li><li>6% interest on bank command</li><li><b>SERVER SPECIAL</b> Ability to change Yuriverse to Quarterly images</li><li>And more</li></ul>To activate the license key, simply use the command: pa.redeem [license] onto a server with Mana or PM Mana with the following.<br><br>Your license key is: '.$license.'<br>You are free to gift this but do remember this is one-time use.<br><br>In case you want to activate it immediately for your account, simply press this link: <a href="https://discord.com/api/oauth2/authorize?client_id=741288788164345856&redirect_uri=https%3A%2F%2Fgateway.manabot.fun%2Fredeem%2F&response_type=code&scope=identify&state='.base64_encode($license).'">Authenticate with Discord</a><br><h5>Powered by Mana Network, created by Shindou Mihou.</h5>', '[Mana] Thank you for purchasing Premium!');
+            $encoded = str_replace('=', '', base64_encode($license));
+            email($bmc['supporter_email'], isset($bmc['supporter_name']) ? $bmc['supporter_name'] : "Fellow user", '<b>Mana Network</b><br>Thank you for purchasing Mana Premium! With each dollar you purchase, we are able to fund Mana\'s server and entire intrafrastucture while also being able to support ourselves enough, in exchange for supporting us, you receive the following rewards: <br><ul><li>3x server license keys (36 license keys for yearly subscriptions or 30 dollars support)</li><li>Waifu command unlocked</li><li><b>SERVER SPECIAL</b> Ability to change Yuriverse to Quarterly images</li><li>And more</li></ul>To activate the license key, simply use the command: pa.redeem [license] onto a server with Mana or PM Mana with the following.<br><br>Your license key is: '.$license.'<br>You are free to gift thisby sending them this link but do remember this is one-time use: <a href="https://manabot.fun/gift/'.$encoded.'">https://manabot.fun/gift/'.$encoded.'</a><br><br>In case you want to activate it immediately for your account, simply press this link: <a href="https://discord.com/api/oauth2/authorize?client_id=741288788164345856&redirect_uri=https%3A%2F%2Fgateway.manabot.fun%2Fredeem%2F&response_type=code&scope=identify&state='.$encoded.'">Authenticate with Discord</a><br><h5>Powered by Mana Network, created by Shindou Mihou.</h5>');
         } else {
             reply(400, 'Invalid request...');
         }
@@ -210,7 +239,7 @@ SimpleRouter::post('/subscription/' . $_ENV['GATEWAY_ENDPOINT'], function () {
     }
 });
 
-SimpleRouter::get('/subscription/' . $_ENV['GATEWAY_ENDPOINT'], function (){
+SimpleRouter::get('/subscription/' . $_ENV['GATEWAY_ENDPOINT'], function () {
     reply(400, "Please use a POST request.");
 });
 
