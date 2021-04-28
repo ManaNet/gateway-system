@@ -16,7 +16,7 @@ error_reporting(E_ALL);
 
 define('DISCORD_TOKEN', 'https://discord.com/api/oauth2/token');
 define('DISCORD_USER', 'https://discordapp.com/api/users/@me');
-define('TEXT_REPLY', array(9923 => 'Authorization code from Discord is expired... please try again by pressing the link on your email once more.', 8823 => 'Invalid Request, possible malformed URL or invalid parameters.', 2231 => 'The license seems to have already been used/is invalid...'));
+define('TEXT_REPLY', array(9923 => 'Authorization code from Discord is expired... please try again by pressing the link on your email once more.', 8823 => 'Invalid Request, possible malformed URL or invalid parameters.', 2231 => 'The license seems to have already been used/is invalid...', 5623 => 'You already are a Premium user!'));
 
 # Load all the dotenv files.
 $dotenv = Dotenv::createImmutable(__DIR__);
@@ -143,6 +143,9 @@ SimpleRouter::get('/redeem/', function () {
                 $database->delete('licenses', ['license' => $license]);
                 # Redirect the user to the thank you page.
                 header('Location: https://manabot.fun/thank-you/');
+            } else if($web__response === 401) {
+                # Redirect user to You are already a Premium user page.
+                header('Location: https://gateway.manabot.fun/invalid/5623/');
             } else {
                 # Redirect the user to the invalid page.
                 header('Location: https://gateway.manabot.fun/invalid/9923/');
